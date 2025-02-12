@@ -1,0 +1,12 @@
+SELECT t."Zone",SUM(g.total_amount) 
+FROM green_taxi_data g 
+LEFT JOIN taxi_zone t ON g."PULocationID" = t."LocationID"
+WHERE g.lpep_pickup_datetime::DATE = '2019-10-18' 
+GROUP BY t."Zone" ORDER BY SUM(g.total_amount) DESC LIMIT 3;
+
+
+"East Harlem North","18686.680000000084"
+"East Harlem South","16797.26000000007"
+"Morningside Heights","13029.790000000032"
+
+East Harlem North, East Harlem South, Morningside Heights

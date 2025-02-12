@@ -1,0 +1,15 @@
+SELECT d."Zone",SUM(g.tip_amount) 
+FROM green_taxi_data g 
+JOIN taxi_zone p ON g."PULocationID" = p."LocationID"
+JOIN taxi_zone d ON g."DOLocationID" = d."LocationID"
+WHERE g.lpep_pickup_datetime::DATE >= '2019-10-01' AND   g.lpep_pickup_datetime::DATE <= '2019-10-31' AND p."Zone" = 'East Harlem North'
+GROUP BY d."Zone" ORDER BY SUM(g.tip_amount) DESC LIMIT 1;
+
+"Upper East Side North","4935.359999999997"
+"East Harlem South","4076.4399999999987"
+"Morningside Heights","3369.3599999999997"
+"Yorkville West","3322.149999999997"
+"Upper West Side North","2942.319999999999"
+"Upper West Side South","2337.9499999999994"
+
+=> "East Harlem South","4076.4399999999987"

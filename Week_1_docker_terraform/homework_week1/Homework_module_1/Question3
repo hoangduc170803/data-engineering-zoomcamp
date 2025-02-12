@@ -1,0 +1,40 @@
+Approximate the number of trips that were taken in October 2019 for each of the following trip distances:
+Answer: 104,838; 199,013; 109,645; 27,688; 35,202
+
+
+SELECT COUNT(*) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime >= '2019-10-01' 
+AND g.lpep_pickup_datetime < '2019-11-01'
+AND g.trip_distance <= 1 ;
+
+104830
+
+
+SELECT COUNT(*) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime >= '2019-10-01' 
+AND g.lpep_pickup_datetime < '2019-11-01'
+AND g.trip_distance > 1 AND g.trip_distance <=3 ;
+
+198955
+
+
+SELECT COUNT(*) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime >= '2019-10-01' 
+AND g.lpep_pickup_datetime < '2019-11-01'
+AND g.trip_distance > 3 AND g.trip_distance <= 7;
+
+109642
+
+SELECT COUNT(*) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime >= '2019-10-01' 
+AND g.lpep_pickup_datetime < '2019-11-01'
+AND g.trip_distance > 7 AND g.trip_distance <= 10;
+
+27686
+
+SELECT COUNT(*) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime >= '2019-10-01' 
+AND g.lpep_pickup_datetime < '2019-11-01'
+AND g.trip_distance > 10;
+
+35201

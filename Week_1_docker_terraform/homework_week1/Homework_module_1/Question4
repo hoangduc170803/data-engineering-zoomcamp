@@ -1,0 +1,19 @@
+SELECT MAX(trip_distance) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime::DATE = '2019-10-11';
+
+95.78
+
+SELECT MAX(trip_distance) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime::DATE = '2019-10-24';
+
+90.75
+
+SELECT MAX(trip_distance) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime::DATE = '2019-10-26';
+
+91.56
+
+SELECT MAX(trip_distance) FROM green_taxi_data g 
+WHERE g.lpep_pickup_datetime::DATE = '2019-10-31';
+
+515.89

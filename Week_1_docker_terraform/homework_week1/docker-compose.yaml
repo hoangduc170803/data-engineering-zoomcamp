@@ -1,0 +1,46 @@
+#Đây là phần cấu hình các service (dịch vụ) trong Docker Compose
+services:
+#Service db chứa cấu hình của PostgreSQL
+  db:
+  #Tên của container
+    container_name: postgres
+    #image chỉ định Docker image mà container sẽ được tạo ra từ đó.
+    image: postgres:17-alpine #postgres:17-alpine là phiên bản PostgreSQL 17 được xây dựng trên nền tảng Alpine Linux, một bản phân phối Linux nhẹ.
+    #environment chỉ định các biến môi trường mà container cần sử dụng.
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'postgres'
+      POSTGRES_DB: 'ny_taxi'
+    ports:
+    #Đây là ánh xạ cổng giữa container và máy chủ (host). Cổng bên trong container (5432) là cổng mặc định mà PostgreSQL lắng nghe, nhưng cổng bên ngoài máy chủ là 5433.
+      - '5433:5432'
+    volumes:
+    #Đây là ánh xạ giữa volume vol-pgdata và thư mục /var/lib/postgresql/data trong container.
+      - vol-pgdata:/var/lib/postgresql/data
+
+#Service pgadmin chứa cấu hình của pgAdmin
+  pgadmin:
+  #Tên của container
+    container_name: pgadmin
+    #image chỉ định Docker image mà container sẽ được tạo ra từ đó.
+    image: dpage/pgadmin4:latest
+    #environment chỉ định các biến môi trường mà container cần sử dụng.
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "pgadmin@pgadmin.com"
+      PGADMIN_DEFAULT_PASSWORD: "pgadmin"
+    ports:
+    #Đây là ánh xạ cổng giữa container và máy chủ (host). Cổng bên trong container (80) là cổng mặc định mà pgAdmin lắng nghe, nhưng cổng bên ngoài máy chủ là 8080.
+      - "8080:80"
+    volumes:
+    #Đây là ánh xạ giữa volume vol-pgadmin_data và thư mục /var/lib/pgadmin trong container.
+      - vol-pgadmin_data:/var/lib/pgadmin  
+
+#Đây là phần định nghĩa các volume được sử dụng bởi các container trong Docker Compose.
+volumes:
+#Volume vol-pgdata được sử dụng bởi container db để lưu trữ dữ liệu của PostgreSQL.
+  vol-pgdata:
+  #Volume này được sử dụng trong service db để lưu trữ dữ liệu PostgreSQL.
+    name: vol-pgdata
+  vol-pgadmin_data:
+  #Volume này được sử dụng trong service pgadmin để lưu trữ dữ liệu của pgAdmin (cấu hình, thông tin người dùng, etc.).
+    name: vol-pgadmin_data

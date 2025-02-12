@@ -1,0 +1,48 @@
+services:
+  pgdatabase:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=ny_taxi
+    volumes:
+      - ./ny_taxi_postgres_data:/var/lib/postgresql/data:rw
+    ports:
+      - "5431:5432" 
+    networks:
+      - airflow  
+  # pgadmin:  
+  #   image: dpage/pgadmin4
+  #   environment:
+  #       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+  #       - PGADMIN_DEFAULT_PASSWORD=root
+  #   ports:
+  #     - "8080:80"    
+
+
+networks:
+  airflow:
+    external:
+      name: airflow_default      
+
+#6b8db2e1f80a   airflow_default      bridge    local
+
+
+
+
+
+
+
+#./ny_taxi_postgres_data:
+
+#Đây là thư mục trên host (máy tính của bạn).
+#Thư mục này được sử dụng để lưu dữ liệu PostgreSQL bên ngoài container, giúp dữ liệu không bị mất khi container bị xóa hoặc tái khởi động.
+#/var/lib/postgresql/data:
+
+#Đây là thư mục bên trong container mà PostgreSQL sử dụng để lưu trữ dữ liệu của nó.
+#PostgreSQL mặc định lưu trữ database tại đây.
+#:rw:
+
+#Tùy chọn này chỉ định quyền truy cập là read-write (đọc-ghi).
+#Điều này cho phép cả container và máy chủ host có thể đọc và ghi vào thư mục này.
+  

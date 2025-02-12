@@ -1,0 +1,57 @@
+# 1️⃣ Bỏ qua logs, cache và temp files của Airflow
+logs/
+dags/__pycache__/
+plugins/__pycache__/
+temp/
+output/
+
+# 2️⃣ Bỏ qua file cấu hình nhạy cảm
+airflow.cfg
+webserver_config.py
+
+# 3️⃣ Bỏ qua file môi trường và secrets
+.env
+.envrc
+secrets.env
+config/
+keys/
+secrets/
+
+# 4️⃣ Bỏ qua file database SQLite (nếu từng sử dụng SQLite trước khi chuyển sang PostgreSQL)
+airflow.db
+airflow.sqlite
+
+# 5️⃣ PostgreSQL database files (nếu có dump database)
+*.sql
+*.dump
+*.backup
+
+# 6️⃣ Bỏ qua các file compiled của Python
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.out
+
+# 7️⃣ Bỏ qua thư mục cache và virtual environment
+__pycache__/
+venv/
+.env/
+.mypy_cache/
+.pylint.d/
+
+# 8️⃣ DBT files (nếu chạy DBT trong Airflow)
+dbt_packages/
+dbt_modules/
+target/
+
+# 9️⃣ Jupyter Notebook checkpoints (nếu sử dụng notebook)
+.ipynb_checkpoints/
+
+# 🔟 Các file tạm thời khác
+*.tmp
+*.swp
+*.swo
+.DS_Store
+
+*.json
