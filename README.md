@@ -15,6 +15,6 @@ This project is part of my learning journey following the Data Zoomcamp course. 
 - 💻 Programming Language: Python
 - 📚 Git account, Google cloud account
 - 🗄️ Database: Postgres
-- 🔗 Other dependencies: Google Cloud SDK (explained in module 1),Terraform (explained in module 1),Docker (explained in module 1)
+- 🔗 Other: Google Cloud SDK (explained in module 1),Terraform (explained in module 1),Docker (explained in module 1)
 - 🚀 Airflow (explained in module 2)
 
