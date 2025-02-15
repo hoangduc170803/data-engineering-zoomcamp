@@ -50,7 +50,7 @@ The **staging layer** in a data warehousing environment serves as an intermediat
 The staging layer is a critical component of the data warehousing architecture, facilitating the smooth transition of data from raw sources to analytical structures. Proper design, monitoring, and optimization of this layer can significantly impact overall system performance and data quality.
 
 ## Contact 📬
-For more information or assistance, please reach out to [your contact information].")}]}
+
 ### Resources:
 - Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
 - Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
