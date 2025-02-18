@@ -1,81 +1,339 @@
-## Module 4 Homework 
+## Module 4 Homework
 
-In this homework, we'll use the models developed during the week 4 videos and enhance the already presented dbt project using the already loaded Taxi data for fhv vehicles for year 2019 in our DWH.
+# 📖 Q1
 
-This means that in this homework we use the following data [Datasets list](https://github.com/DataTalksClub/nyc-tlc-data/)
-* Yellow taxi data - Years 2019 and 2020
-* Green taxi data - Years 2019 and 2020 
-* fhv data - Year 2019. 
+## 🧠 1️⃣ Context:
 
-We will use the data loaded for:
+We have the following `sources.yml` file:
 
-* Building a source table: `stg_fhv_tripdata`
-* Building a fact table: `fact_fhv_trips`
-* Create a dashboard 
+```yaml
+version: 2
 
-If you don't have access to GCP, you can do this locally using the ingested data from your Postgres database
-instead. If you have access to GCP, you don't need to do it for local Postgres - only if you want to.
+sources:
+  - name: raw_nyc_tripdata
+    database: "{{ env_var('DBT_BIGQUERY_PROJECT', 'dtc_zoomcamp_2025') }}"
+    schema:   "{{ env_var('DBT_BIGQUERY_SOURCE_DATASET', 'raw_nyc_tripdata') }}"
+    tables:
+      - name: ext_green_taxi
+      - name: ext_yellow_taxi
+```
 
-> **Note**: if your answer doesn't match exactly, select the closest option 
+And we have the following environment variables set:
 
-### Question 1: 
+```bash
+export DBT_BIGQUERY_PROJECT=myproject
+export DBT_BIGQUERY_SOURCE_DATASET=my_nyc_tripdata
+```
 
-**What happens when we execute dbt build --vars '{'is_test_run':'true'}'**
-You'll need to have completed the ["Build the first dbt models"](https://www.youtube.com/watch?v=UVI30Vxzd6c) video. 
-- It's the same as running *dbt build*
-- It applies a _limit 100_ to all of our models
-- It applies a _limit 100_ only to our staging models
-- Nothing
+### 🛠️ SQL Query:
 
-### Question 2: 
+```sql
+SELECT *
+FROM {{ source('raw_nyc_tripdata', 'ext_green_taxi') }}
+```
 
-**What is the code that our CI job will run? Where is this code coming from?**  
+## 🔍 2️⃣ How dbt Resolves the Source()
 
-- The code that has been merged into the main branch
-- The code that is behind the creation object on the dbt_cloud_pr_ schema
-- The code from any development branch that has been opened based on main
-- The code from the development branch we are requesting to merge to main
+The `source()` function in dbt compiles into a fully-qualified table reference using the following structure:
+
+```sql
+SELECT * FROM `<database>.<schema>.<table>`
+```
+
+### 📜 Breakdown:
+
+| Component | Definition              | Resolution              |
+|-----------|-------------------------|--------------------------|
+| **Database** | Defined in `sources.yml` | `myproject` (from `DBT_BIGQUERY_PROJECT`) |
+| **Schema**   | Defined in `sources.yml` | `my_nyc_tripdata` (from `DBT_BIGQUERY_SOURCE_DATASET`) |
+| **Table**    | Provided in `sources.yml` | `ext_green_taxi`           |
+
+### ⚙️ Compilation Steps:
+
+1. **Database:**
+   - dbt reads the `database` field from the `sources.yml` file.
+   - It finds `{{ env_var('DBT_BIGQUERY_PROJECT', 'dtc_zoomcamp_2025') }}`.
+   - It checks the environment variable `DBT_BIGQUERY_PROJECT`, which is set to `myproject`.
+   - Final value: **`myproject`**.
+
+2. **Schema:**
+   - dbt reads the `schema` field from the `sources.yml` file.
+   - It finds `{{ env_var('DBT_BIGQUERY_SOURCE_DATASET', 'raw_nyc_tripdata') }}`.
+   - It checks the environment variable `DBT_BIGQUERY_SOURCE_DATASET`, which is set to `my_nyc_tripdata`.
+   - Final value: **`my_nyc_tripdata`**.
+
+3. **Table:**
+   - dbt finds the table name `ext_green_taxi` directly from `sources.yml`.
+   - No dynamic value or environment variable is involved here.
+
+### ✅ Compiled SQL:
+
+```sql
+SELECT * FROM myproject.my_nyc_tripdata.ext_green_taxi
+```
+
+# 📖 Q2
+## 🧠 1️⃣ Context
+
+We need to modify the following dbt model (`fct_recent_taxi_trips.sql`) to allow Analytics Engineers to dynamically control the date range:
+
+- **Development:** Process the last 7 days.
+- **Production:** Process the last 30 days.
+
+### 🔍 Original Query:
+
+```sql
+SELECT *
+FROM {{ ref('fact_taxi_trips') }}
+WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '30 days'
+```
+
+## 🎯 2️⃣ Requirements
+
+- Command-line arguments should take precedence over environment variables.
+- Environment variables should take precedence over default values.
+
+## 🚀 3️⃣ Options Analysis
+
+| **Option** | **Query** | **Explanation** |
+|------------|----------|-----------------|
+| 1 | `ORDER BY pickup_datetime DESC LIMIT {{ var("days_back", 30) }}` | Irrelevant to date filtering. |
+| 2 | `WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", 30) }}' DAY` | Uses `var()` but ignores `env_var()`. |
+| 3 | `WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '{{ env_var("DAYS_BACK", "30") }}' DAY` | Relies only on environment variables. |
+| 4 | `WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("DAYS_BACK", "30")) }}' DAY` | ✅ **Correct - follows the right priority order: command > env > default**. |
+| 5 | `WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '{{ env_var("DAYS_BACK", var("days_back", "30")) }}' DAY` | Environment variable takes precedence over command-line argument. |
 
 
-### Question 3 (2 points)
+## 🏆 4️⃣ Correct Answer
 
-**What is the count of records in the model fact_fhv_trips after running all dependencies with the test run variable disabled (:false)?**  
-Create a staging model for the fhv data, similar to the ones made for yellow and green data. Add an additional filter for keeping only records with pickup time in year 2019.
-Do not add a deduplication step. Run this models without limits (is_test_run: false).
+The correct solution is:
 
-Create a core model similar to fact trips, but selecting from stg_fhv_tripdata and joining with dim_zones.
-Similar to what we've done in fact_trips, keep only records with known pickup and dropoff locations entries for pickup and dropoff locations. 
-Run the dbt model without limits (is_test_run: false).
+```sql
+WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("DAYS_BACK", "30")) }}' DAY
+```
 
-- 12998722
-- 22998722
-- 32998722
-- 42998722
+### 🧠 **Explanation:**
+1. **`var("days_back", ...)`**: Allows passing parameters via the command line.
+2. **`env_var("DAYS_BACK", ...)`**: Uses the environment variable if the command-line parameter is not provided.
+3. **`"30"`**: Default value if both are missing.
 
-### Question 4 (2 points)
+### 🛠️ **Priority Order:**
+1. **Command-line argument**: Run with `--vars '{"days_back": "7"}'`.
+2. **Environment variable**: Set with `export DAYS_BACK=7`.
+3. **Default value**: Uses `30` if both are missing.
 
-**What is the service that had the most rides during the month of July 2019 month with the biggest amount of rides after building a tile for the fact_fhv_trips table and the fact_trips tile as seen in the videos?**
+## 🧪 5️⃣ Debugging Tips
 
-Create a dashboard with some tiles that you find interesting to explore the data. One tile should show the amount of trips per month, as done in the videos for fact_trips, including the fact_fhv_trips data.
+### 🛠️ **Check Compilation**
+```bash
+dbt compile --select fct_recent_taxi_trips
+```
 
-- FHV
-- Green
-- Yellow
-- FHV and Green
+### 🛠️ **Test Parameter Override**
+```bash
+dbt run --select fct_recent_taxi_trips --vars '{"days_back": "7"}'
+```
+
+### 🛠️ **Check Environment Variable**
+```bash
+echo $DAYS_BACK
+```
+
+### 🛠️ **Run dbt Debug**
+```bash
+dbt debug
+```
+
+## 🔍 6️⃣ Conclusion
+
+- **Best Query:**
+
+```sql
+WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("DAYS_BACK", "30")) }}' DAY
+```
+
+- **Priority:** Command-line argument > environment variable > default value.
+- **Flexible solution** for both development (7 days) and production (30 days).
 
 
-## Submitting the solutions
+## 📖 Q3
+Based on the provided lineage graph, we know that the final table **`fct_taxi_monthly_zone_revenue`** depends on several upstream tables, including:
 
-* Form for submitting: https://courses.datatalks.club/de-zoomcamp-2024/homework/hw4
+- **`dim_taxi_trips`**
+- **`dim_fhv_trips`**
+- **`dim_zone_lookup`** *(from the seed `taxi_zone_lookup`)*
 
-Deadline: 22 February (Thursday), 22:00 CET
+### ⚙️ **Key Insight:**
+
+- **`taxi_zone_lookup`** is **the only materialized seed file**.
+- **The other models are either staging or core transformations.**
+
+---
+
+## 🛠️ **Understanding dbt Commands**
+
+Let's break down each command:
+
+### 🟢 1️⃣ **`dbt run`**
+
+🔍 **What it does:**
+
+- Runs all models **except seeds** and **tests**.
+- It **would materialize** **`fct_taxi_monthly_zone_revenue`** along with **all dependencies** if needed.
+
+✅ **Applies:** ✔️ *(This command works fine for the final model.)*
+
+---
+
+### 🟢 2️⃣ **`dbt run --select +models/core/dim_taxi_trips.sql+ --target prod`**
+
+🔍 **What it does:**
+
+- **`dim_taxi_trips.sql`** is a **core model**.
+- The **`+`** selector indicates **include immediate upstream/downstream dependencies**.
+- dbt run --select +path:models/core/dim_taxi_trips.sql+ --target prod
+  
+✅ **Applies:** ✔️ 
 
 
-## Solution (To be published after deadline)
+---
 
-* Video: https://youtu.be/3OPggh5Rca8
-* Answers:
-  * Question 1: It applies a _limit 100_ only to our staging models
-  * Question 2: The code from the development branch we are requesting to merge to main
-  * Question 3: 22998722
-  * Question 4: Yellow
+### 🟢 3️⃣ **`dbt run --select +models/core/fct_taxi_monthly_zone_revenue.sql`**
+
+🔍 **What it does:**
+
+- Runs **`fct_taxi_monthly_zone_revenue`** and its **dependencies**.
+- The **`+`** selector ensures **upstream models are built** if needed.
+
+✅ **Applies:** ✔️ *(This command will correctly materialize the final model.)*
+
+---
+
+### 🟢 4️⃣ **`dbt run --select +models/core/`**
+
+🔍 **What it does:**
+
+- Runs **all models within the `core` directory**, including **`dim_taxi_trips`** and **`fct_taxi_monthly_zone_revenue`**.
+
+✅ **Applies:** ✔️ *(This command includes the final model.)*
+
+---
+
+### ❌ 5️⃣ `dbt run --select models/staging/+`
+
+🔍 **What it does:**
+
+- Runs **all models in the `staging` folder**.
+- **Does NOT materialize `fct_taxi_monthly_zone_revenue`** (it's in the `core` folder).
+
+❌ **Does NOT apply:** ✘ *(This command is limited to staging and cannot build the final table.)*
+
+---
+
+## 🎯 **Conclusion**
+
+The **commands that do NOT apply** are:
+
+
+### ❌ **`dbt run --select models/staging/+`**
+
+---
+
+
+
+```bash
+dbt run --select +models/core/
+```
+
+---
+
+### ✅ **Final Answer:**
+
+**`dbt run --select models/staging/+`** 🚫
+
+# 📖 Q4
+
+## 🛠️ Macro Behavior Explained
+
+The behavior of dataset selection in dbt based on the `model_type` can be summarized as follows:
+
+### 1️⃣ **For `model_type == 'core'`:**
+
+The macro returns:
+
+```jinja
+env_var('DBT_BIGQUERY_TARGET_DATASET')
+```
+
+**Important Note:**
+- This call does **not** provide a fallback value.  
+- **Implication:** `DBT_BIGQUERY_TARGET_DATASET` **must be defined**, or dbt **will fail to compile**.
+
+---
+
+### 2️⃣ **For other `model_type` values (e.g., `staging`, `dim_`, `fct_`):**
+
+The macro returns:
+
+```jinja
+env_var('DBT_BIGQUERY_STAGING_DATASET', env_var('DBT_BIGQUERY_TARGET_DATASET'))
+```
+
+**Explanation:**
+- dbt will first attempt to get the value of `DBT_BIGQUERY_STAGING_DATASET`.  
+- **If set:** It uses that value.  
+- **If not:** It falls back to the value of `DBT_BIGQUERY_TARGET_DATASET`.  
+
+**Implication:** Setting `DBT_BIGQUERY_STAGING_DATASET` **is optional**.  
+
+---
+
+## ✅ **Statement Evaluation**
+
+Let's evaluate the given statements:
+
+1. **"Setting a value for `DBT_BIGQUERY_TARGET_DATASET` env var is mandatory, or it'll fail to compile"**  
+   - **Answer:** ✅ **True**.  
+   - **Explanation:** Core models use `DBT_BIGQUERY_TARGET_DATASET` directly with no fallback.
+
+2. **"Setting a value for `DBT_BIGQUERY_STAGING_DATASET` env var is mandatory, or it'll fail to compile"**  
+   - **Answer:** ❌ **False**.  
+   - **Explanation:** Non-core models fall back to `DBT_BIGQUERY_TARGET_DATASET` if the staging variable is missing.
+
+3. **"When using core, it materializes in the dataset defined in `DBT_BIGQUERY_TARGET_DATASET`"**  
+   - **Answer:** ✅ **True**.  
+   - **Explanation:** Core models directly use this variable.
+
+4. **"When using stg, it materializes in the dataset defined in `DBT_BIGQUERY_STAGING_DATASET`, or defaults to `DBT_BIGQUERY_TARGET_DATASET`"**  
+   - **Answer:** ✅ **True**.  
+   - **Explanation:** Non-core models check the staging variable first.
+
+5. **"When using staging, it materializes in the dataset defined in `DBT_BIGQUERY_STAGING_DATASET`, or defaults to `DBT_BIGQUERY_TARGET_DATASET`"**  
+   - **Answer:** ✅ **True**.  
+   - **Explanation:** Same behavior as statement 4.
+
+---
+
+## 🧠 **Summary of Evaluation**
+
+- **True Statements:** 1️⃣, 3️⃣, 4️⃣, 5️⃣  
+- **False Statement:** 2️⃣
+
+### 🔑 **Key Takeaways:**
+1. **`DBT_BIGQUERY_TARGET_DATASET`** is **mandatory**.  
+2. **`DBT_BIGQUERY_STAGING_DATASET`** is **optional**, and dbt will fall back to **`DBT_BIGQUERY_TARGET_DATASET`** if it is not defined.  
+3. Core models always use **`DBT_BIGQUERY_TARGET_DATASET`**.  
+4. Non-core models (e.g., staging, dim, fct) prefer **`DBT_BIGQUERY_STAGING_DATASET`** if available.
+
+---
+
+
+## 🎯 **Conclusion**
+
+Understanding how `env_var()` works in dbt is crucial for managing environments dynamically.  
+- **Always set `DBT_BIGQUERY_TARGET_DATASET`** when working with core models.  
+- **Use `DBT_BIGQUERY_STAGING_DATASET`** for better control over non-core datasets but rely on the fallback if necessary.  
+
+
+
+
