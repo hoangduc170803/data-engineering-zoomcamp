@@ -234,24 +234,12 @@ Let's break down each command:
 
 The **commands that do NOT apply** are:
 
-### ❌ **`dbt run --select +models/core/dim_taxi_trips.sql+ --target prod`**
 
 ### ❌ **`dbt run --select models/staging/+`**
 
 ---
 
-💡 **Explanation:**
 
-- **Incorrect syntax** for `dbt run` selection in the first command.
-- **Staging-only command** does not trigger builds for core models like `fct_taxi_monthly_zone_revenue`.
-
-👉 **Correct command to build dependencies:**
-
-```bash
-dbt run --select +models/core/dim_taxi_trips
-```
-
-or
 
 ```bash
 dbt run --select +models/core/
