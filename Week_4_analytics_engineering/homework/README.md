@@ -155,10 +155,8 @@ WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("D
 - **Priority:** Command-line argument > environment variable > default value.
 - **Flexible solution** for both development (7 days) and production (30 days).
 
-# 🧠 Analyzing the Materialization of `fct_taxi_monthly_zone_revenue`
 
-## 📖 Understanding the Lineage Graph
-
+## 📖 Q3
 Based on the provided lineage graph, we know that the final table **`fct_taxi_monthly_zone_revenue`** depends on several upstream tables, including:
 
 - **`dim_taxi_trips`**
