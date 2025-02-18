@@ -192,6 +192,7 @@ Let's break down each command:
 - **`dim_taxi_trips.sql`** is a **core model**.
 - The **`+`** selector indicates **include immediate upstream/downstream dependencies**.
 - dbt run --select +path:models/core/dim_taxi_trips.sql+ --target prod
+  
 ✅ **Applies:** ✔️ 
 
 
