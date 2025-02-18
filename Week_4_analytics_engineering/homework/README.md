@@ -155,5 +155,114 @@ WHERE pickup_datetime >= CURRENT_DATE - INTERVAL '{{ var("days_back", env_var("D
 - **Priority:** Command-line argument > environment variable > default value.
 - **Flexible solution** for both development (7 days) and production (30 days).
 
-🎯 **Happy modeling with dbt! 🚀**
+# 🧠 Analyzing the Materialization of `fct_taxi_monthly_zone_revenue`
+
+## 📖 Understanding the Lineage Graph
+
+Based on the provided lineage graph, we know that the final table **`fct_taxi_monthly_zone_revenue`** depends on several upstream tables, including:
+
+- **`dim_taxi_trips`**
+- **`dim_fhv_trips`**
+- **`dim_zone_lookup`** *(from the seed `taxi_zone_lookup`)*
+
+### ⚙️ **Key Insight:**
+
+- **`taxi_zone_lookup`** is **the only materialized seed file**.
+- **The other models are either staging or core transformations.**
+
+---
+
+## 🛠️ **Understanding dbt Commands**
+
+Let's break down each command:
+
+### 🟢 1️⃣ **`dbt run`**
+
+🔍 **What it does:**
+
+- Runs all models **except seeds** and **tests**.
+- It **would materialize** **`fct_taxi_monthly_zone_revenue`** along with **all dependencies** if needed.
+
+✅ **Applies:** ✔️ *(This command works fine for the final model.)*
+
+---
+
+### 🟢 2️⃣ **`dbt run --select +models/core/dim_taxi_trips.sql+ --target prod`**
+
+🔍 **What it does:**
+
+- **`dim_taxi_trips.sql`** is a **core model**.
+- The **`+`** selector indicates **include immediate upstream/downstream dependencies**.
+- dbt run --select +path:models/core/dim_taxi_trips.sql+ --target prod
+✅ **Applies:** ✔️ 
+
+
+---
+
+### 🟢 3️⃣ **`dbt run --select +models/core/fct_taxi_monthly_zone_revenue.sql`**
+
+🔍 **What it does:**
+
+- Runs **`fct_taxi_monthly_zone_revenue`** and its **dependencies**.
+- The **`+`** selector ensures **upstream models are built** if needed.
+
+✅ **Applies:** ✔️ *(This command will correctly materialize the final model.)*
+
+---
+
+### 🟢 4️⃣ **`dbt run --select +models/core/`**
+
+🔍 **What it does:**
+
+- Runs **all models within the `core` directory**, including **`dim_taxi_trips`** and **`fct_taxi_monthly_zone_revenue`**.
+
+✅ **Applies:** ✔️ *(This command includes the final model.)*
+
+---
+
+### ❌ 5️⃣ `dbt run --select models/staging/+`
+
+🔍 **What it does:**
+
+- Runs **all models in the `staging` folder**.
+- **Does NOT materialize `fct_taxi_monthly_zone_revenue`** (it's in the `core` folder).
+
+❌ **Does NOT apply:** ✘ *(This command is limited to staging and cannot build the final table.)*
+
+---
+
+## 🎯 **Conclusion**
+
+The **commands that do NOT apply** are:
+
+### ❌ **`dbt run --select +models/core/dim_taxi_trips.sql+ --target prod`**
+
+### ❌ **`dbt run --select models/staging/+`**
+
+---
+
+💡 **Explanation:**
+
+- **Incorrect syntax** for `dbt run` selection in the first command.
+- **Staging-only command** does not trigger builds for core models like `fct_taxi_monthly_zone_revenue`.
+
+👉 **Correct command to build dependencies:**
+
+```bash
+dbt run --select +models/core/dim_taxi_trips
+```
+
+or
+
+```bash
+dbt run --select +models/core/
+```
+
+---
+
+### ✅ **Final Answer:**
+
+**`dbt run --select models/staging/+`** 🚫
+
+
 
