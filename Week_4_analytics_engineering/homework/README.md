@@ -251,5 +251,89 @@ dbt run --select +models/core/
 
 **`dbt run --select models/staging/+`** 🚫
 
+# 📖 Q4
+
+## 🛠️ Macro Behavior Explained
+
+The behavior of dataset selection in dbt based on the `model_type` can be summarized as follows:
+
+### 1️⃣ **For `model_type == 'core'`:**
+
+The macro returns:
+
+```jinja
+env_var('DBT_BIGQUERY_TARGET_DATASET')
+```
+
+**Important Note:**
+- This call does **not** provide a fallback value.  
+- **Implication:** `DBT_BIGQUERY_TARGET_DATASET` **must be defined**, or dbt **will fail to compile**.
+
+---
+
+### 2️⃣ **For other `model_type` values (e.g., `staging`, `dim_`, `fct_`):**
+
+The macro returns:
+
+```jinja
+env_var('DBT_BIGQUERY_STAGING_DATASET', env_var('DBT_BIGQUERY_TARGET_DATASET'))
+```
+
+**Explanation:**
+- dbt will first attempt to get the value of `DBT_BIGQUERY_STAGING_DATASET`.  
+- **If set:** It uses that value.  
+- **If not:** It falls back to the value of `DBT_BIGQUERY_TARGET_DATASET`.  
+
+**Implication:** Setting `DBT_BIGQUERY_STAGING_DATASET` **is optional**.  
+
+---
+
+## ✅ **Statement Evaluation**
+
+Let's evaluate the given statements:
+
+1. **"Setting a value for `DBT_BIGQUERY_TARGET_DATASET` env var is mandatory, or it'll fail to compile"**  
+   - **Answer:** ✅ **True**.  
+   - **Explanation:** Core models use `DBT_BIGQUERY_TARGET_DATASET` directly with no fallback.
+
+2. **"Setting a value for `DBT_BIGQUERY_STAGING_DATASET` env var is mandatory, or it'll fail to compile"**  
+   - **Answer:** ❌ **False**.  
+   - **Explanation:** Non-core models fall back to `DBT_BIGQUERY_TARGET_DATASET` if the staging variable is missing.
+
+3. **"When using core, it materializes in the dataset defined in `DBT_BIGQUERY_TARGET_DATASET`"**  
+   - **Answer:** ✅ **True**.  
+   - **Explanation:** Core models directly use this variable.
+
+4. **"When using stg, it materializes in the dataset defined in `DBT_BIGQUERY_STAGING_DATASET`, or defaults to `DBT_BIGQUERY_TARGET_DATASET`"**  
+   - **Answer:** ✅ **True**.  
+   - **Explanation:** Non-core models check the staging variable first.
+
+5. **"When using staging, it materializes in the dataset defined in `DBT_BIGQUERY_STAGING_DATASET`, or defaults to `DBT_BIGQUERY_TARGET_DATASET`"**  
+   - **Answer:** ✅ **True**.  
+   - **Explanation:** Same behavior as statement 4.
+
+---
+
+## 🧠 **Summary of Evaluation**
+
+- **True Statements:** 1️⃣, 3️⃣, 4️⃣, 5️⃣  
+- **False Statement:** 2️⃣
+
+### 🔑 **Key Takeaways:**
+1. **`DBT_BIGQUERY_TARGET_DATASET`** is **mandatory**.  
+2. **`DBT_BIGQUERY_STAGING_DATASET`** is **optional**, and dbt will fall back to **`DBT_BIGQUERY_TARGET_DATASET`** if it is not defined.  
+3. Core models always use **`DBT_BIGQUERY_TARGET_DATASET`**.  
+4. Non-core models (e.g., staging, dim, fct) prefer **`DBT_BIGQUERY_STAGING_DATASET`** if available.
+
+---
+
+
+## 🎯 **Conclusion**
+
+Understanding how `env_var()` works in dbt is crucial for managing environments dynamically.  
+- **Always set `DBT_BIGQUERY_TARGET_DATASET`** when working with core models.  
+- **Use `DBT_BIGQUERY_STAGING_DATASET`** for better control over non-core datasets but rely on the fallback if necessary.  
+
+
 
 
