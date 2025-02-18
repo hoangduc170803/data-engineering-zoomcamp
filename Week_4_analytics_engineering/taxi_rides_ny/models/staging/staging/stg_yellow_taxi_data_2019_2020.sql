@@ -37,7 +37,7 @@ select
     cast(total_amount as numeric) as total_amount,
     coalesce({{ dbt.safe_cast("payment_type", api.Column.translate_type("integer")) }},0) as payment_type,
     {{ get_payment_type_description('payment_type') }} as payment_type_description
-from tripdata
+from tripdata_2019_2020
 where rn = 1
 
 -- dbt build --select <model.sql> --vars '{'is_test_run: false}'
