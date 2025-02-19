@@ -5,25 +5,24 @@ with trips_data as (
 )
     select 
     -- Revenue grouping 
-    pickup_zone as revenue_zone,
-    {{ convert_to_quarter('pickup_datetime') }} AS order_quarter,
+    {{ convert_to_quarter('pickup_datetime') }} AS revenue_quarter,
 
     service_type, 
 
     -- Revenue calculation 
-    sum(fare_amount) as revenue_monthly_fare,
-    sum(extra) as revenue_monthly_extra,
-    sum(mta_tax) as revenue_monthly_mta_tax,
-    sum(tip_amount) as revenue_monthly_tip_amount,
-    sum(tolls_amount) as revenue_monthly_tolls_amount,
-    sum(ehail_fee) as revenue_monthly_ehail_fee,
-    sum(improvement_surcharge) as revenue_monthly_improvement_surcharge,
-    sum(total_amount) as revenue_monthly_total_amount,
+    sum(fare_amount) as revenue_quarter_fare,
+    sum(extra) as revenue_quarter_extra,
+    sum(mta_tax) as revenue_quarter_mta_tax,
+    sum(tip_amount) as revenue_quarter_tip_amount,
+    sum(tolls_amount) as revenue_quarter_tolls_amount,
+    sum(ehail_fee) as revenue_quarter_ehail_fee,
+    sum(improvement_surcharge) as revenue_quarter_improvement_surcharge,
+    sum(total_amount) as revenue_quarter_total_amount,
 
     -- Additional calculations
-    count(tripid) as total_monthly_trips,
-    avg(passenger_count) as avg_monthly_passenger_count,
-    avg(trip_distance) as avg_monthly_trip_distance
+    count(tripid) as total_quarter_trips,
+    avg(passenger_count) as avg_quarter_passenger_count,
+    avg(trip_distance) as avg_quarter_trip_distance
 
     from trips_data
-    group by 1,2,3
+    group by 1,2
