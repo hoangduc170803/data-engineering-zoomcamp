@@ -1,13 +1,15 @@
 --Homework
-with 
 
-source as (
+{{config(materialized = 'view')}}
+
+
+with fhv_data_2019 as (
 
     select * from {{ source('staging', 'fhv_data_2019') }}
 
-),
+)
 
-renamed as (
+
 
     select
         dispatching_base_num,
@@ -18,8 +20,15 @@ renamed as (
         sr_flag,
         affiliated_base_number
 
-    from source
+    from fhv_data_2019 
+    where dispatching_base_num is not null
 
-)
+    -- dbt build --select <model_name> --vars '{'is_test_run': 'false'}'
+{% if var('is_test_run', default=true) %}
 
-select * from renamed
+  limit 100
+
+{% endif %}
+
+
+
