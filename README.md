@@ -9,6 +9,7 @@ This project is part of my learning journey following the Data Zoomcamp course. 
 - 📊 [Module 2](Week_2_airflow): Workflow Orchestration (airflow)
 - 🔧 [Module 3](Week_3_BigQuery): Data Warehousing
 - 📌 [Module 4](Week_4_analytics_engineering): Analytics Engineering
+- ⚡ [Module 5](Week_5_Spark): Apache Spark
 
 ## Technologies Used
 
