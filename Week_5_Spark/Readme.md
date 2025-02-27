@@ -29,21 +29,7 @@ A **cluster** in Apache Spark is a collection of interconnected computers (nodes
 
 Clusters enable Spark to achieve scalability and fault tolerance, ensuring efficient execution of large-scale data processing jobs.
 
-### Why Spark is Faster than RDDs ⚡
-1. **Optimized Query Execution**:
-   - Spark DataFrames and Datasets use **Catalyst Optimizer**, which generates optimized execution plans, unlike RDDs that do not have query optimization.
 
-2. **In-Memory Computation**:
-   - Spark caches DataFrames in memory by default, reducing expensive disk I/O operations, whereas RDDs rely more on disk storage.
-
-3. **Efficient Storage Format**:
-   - DataFrames use columnar storage format (e.g., Parquet), which allows better compression and faster retrieval than the row-based storage of RDDs.
-
-4. **Reduced Overhead**:
-   - RDDs require more code for defining schemas and transformations, whereas DataFrames and Datasets provide built-in functions that minimize overhead and improve performance.
-
-5. **Automatic Optimization**:
-   - DataFrames and Datasets allow Spark to apply **predicate pushdown, projection pruning, and query plan optimization**, making them more efficient than raw RDD transformations.
 
 ## Spark vs. Hadoop ⚖️
 | Feature | Apache Spark | Apache Hadoop (MapReduce) |
