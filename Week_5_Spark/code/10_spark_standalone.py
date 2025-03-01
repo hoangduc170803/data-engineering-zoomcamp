@@ -25,8 +25,7 @@ spark
 
 
 
-df_green = spark.read.parquet("data/pq/green/*/*")
-
+df_green = spark.read.parquet(input_green)
 
 
 
@@ -46,7 +45,7 @@ df_green = df_green.withColumnRenamed('lpep_pickup_datetime', 'pickup_datetime')
 
 
 
-df_yellow = spark.read.parquet("data/pq/yellow/*/*")
+df_yellow = spark.read.parquet(input_yellow)
 
 
 
