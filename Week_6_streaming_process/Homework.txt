@@ -1,0 +1,6 @@
+rpk version
+v24.2.18
+
+rpk topic create green-trips
+TOPIC        STATUS
+green-trips  OK
